@@ -1,0 +1,6 @@
+/src/.env
+/vendor/
+/.php_cs.cache
+/.idea
+/src/parentPid.out
+/src/parser.out
