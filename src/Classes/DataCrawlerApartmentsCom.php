@@ -82,9 +82,9 @@ class DataCrawlerApartmentsCom
                     // neighborhood comments
                     $neighborhoodComment = isset($document->xpath("//h2[contains(text(), 'Neighborhood')]/parent::section")[0]) ?
                         $document->xpath("//h2[contains(text(), 'Neighborhood')]/parent::section")[0] : '';
+                    $neighborhoodComments = [];
                     if ($neighborhoodComment) {
                         $neighborhoodComment = $neighborhoodComment->find('p');
-                        $neighborhoodComments = [];
                         foreach ($neighborhoodComment as $nc) {
                             $neighborhoodComments[] = $this->clearText($nc->text());
                         }
@@ -117,7 +117,7 @@ class DataCrawlerApartmentsCom
                         $this->clearText($document->find('div.propertyAddressContainer')[0]->find('span')[1]->text()) : [];
                     //on_promise_services and on_promise_features
                     $amenitiesSection = isset($document->find('section.amenitiesSection')[0]) ?
-                        $document->find('section.amenitiesSection')[0]->find('div.spec') : '';
+                        $document->find('section.amenitiesSection')[0]->find('div.spec') : [];
                     if (count($amenitiesSection) == 2) { //if both blocks exist
                         $amenitiesList = $this->amenitiesBlock($amenitiesSection[0]->find('div.specGroup'));
                         $appartmentFeatures = $this->amenitiesBlock($amenitiesSection[1]->find('div.specGroup'));
