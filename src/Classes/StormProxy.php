@@ -29,6 +29,7 @@ class StormProxy
         ]);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 100);
         curl_setopt($ch, CURLOPT_TIMEOUT, 100);
+        curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
         curl_setopt($ch, CURLOPT_PROXY, env('PROXY', ''));
 
         $response = curl_exec($ch);

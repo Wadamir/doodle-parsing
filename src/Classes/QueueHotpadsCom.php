@@ -15,6 +15,10 @@ class QueueHotpadsCom
     protected $pid = [];
     // Defines the parent process
     protected $parent = true;
+    // HTTP Response
+    protected $http_response;
+    // Http Errors
+    // public static $http_errr;
 
     public function __construct()
     {
@@ -38,25 +42,25 @@ class QueueHotpadsCom
     }
 
     /**
-     * Starting parseer and distributing tasks among forks
+     * Starting parser and distributing tasks among forks
      */
     public function startHotpadsCom()
     {
+        // global $http_errr;
         while (!$this->stop) {
             $this->checkPid();
             $task = json_decode(Redis::init()->brpop('tasks'), true);
             // echo $task['link'] . PHP_EOL;
             if (count($this->pid) < $this->limit && $task) {
-                // echo 'Queue fork...' . PHP_EOL;
                 $this->fork($task);
             } elseif (count($this->pid) >= $this->limit && $task) {
-                // echo 'Queue rpush...' . PHP_EOL;
                 Redis::init()->rpush('tasks', json_encode($task));
                 sleep(1);
             } elseif (!$task) {
-                echo 'COMPLETED PARSING Hotpads.com!' . PHP_EOL;
                 $this->stop = true;
+                exit();
             }
+            // echo 'startHotPadsCom: hththt - ' . $http_errr . PHP_EOL;
         }
     }
 
@@ -77,12 +81,13 @@ class QueueHotpadsCom
     }
 
     /**
-     * Creating the forms
+     * Creating the forks
      *
      * @param  array $task
      */
     protected function fork($task)
     {
+        global $http_errr;
         $pid = pcntl_fork();
 
         if (-1 === $pid) {
@@ -93,13 +98,19 @@ class QueueHotpadsCom
             $this->pid[$pid] = $task;
         } else {
             $this->parent = false;
-            $this->parse($task);
+            $http_response = $this->parse($task);
+            if (!$http_response) {
+                $http_errr++;
+                echo 'http_errr - ' . $http_errr . ' ';
+            }
+            sleep(2);
+            return false;
             exit();
         }
     }
 
     /**
-     * Pulling the content and passing tasks to parseers classes
+     * Pulling the content and passing tasks to parsers classes
      *
      * @param  array $task
      * @return bool
@@ -127,16 +138,14 @@ class QueueHotpadsCom
             // Run the class
             $class->parse();
 
-            // echo $task['class'];
-            // echo $task['link'];
-
             return true;
         } elseif ($request['http_code'] === 403 || $request['http_code'] === 0) {
             Redis::init()->rpush('tasks', json_encode([
                 'link' => $task['link'],
                 'class' => $task['class'],
             ]));
-
+            // echo 'parse - 403' . PHP_EOL;
+            // self::$http_errr++;
             return false;
         } elseif ($request['http_code'] === 404 && $task['class'] == '\\App\\Classes\\CheckLinksHotpadsCom') { // Initializing the class for checking ads when 404
             $class = new $task['class']($content = null, $task, true);

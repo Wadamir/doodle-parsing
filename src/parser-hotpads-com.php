@@ -21,6 +21,8 @@ file_put_contents('parentPid.out', getmypid());
 
 echo "Hotpads.com - ";
 
+$http_errr = 0;
+
 // parser initialization
 if (isset($argv[1]) && $argv[1] == 'init') {
     echo 'Init..' . PHP_EOL;
@@ -68,8 +70,12 @@ if (isset($argv[1]) && $argv[1] == 'init') {
 // parseing start
 echo 'Parse..' . PHP_EOL;
 
+static $http_errr = 0;
+
 $queue = new Queue;
 $queue->startHotpadsCom();
+
+echo 'End.............................................' . PHP_EOL;
 
 // Stop signals handler
 function signalHandler($signal)
